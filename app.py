@@ -34,10 +34,12 @@ def get_task(task_id):
 
 
 @app.route('/api/tasks', methods=['POST'])
-def create_task():
+def create_task():  # JSON file example: {"title": "Name", "description": "Something", "status": false}
     if not request.json or not 'title' in request.json:
-        abort(400)
+        abort(400, "Missing title")
     title = str(request.json['title'])
+    if Task.query.filter_by(title=title):
+        abort(400, "Task with this title has already exist")
     description = str(request.json['description'] or None)
     status = bool(request.json['status'] or False)
     task = Task(title=title, description=description, status=status)
@@ -49,7 +51,7 @@ def create_task():
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
     if not request.json or not 'title' in request.json:
-        abort(400)
+        abort(400, "Missing title")
     title = str(request.json['title'])
     task = Task.query.filter_by(id=task_id).first_or_404()
     description = str(request.json['description'] or task.description)
@@ -67,7 +69,7 @@ def delete_task(task_id):
         db.session.delete(task)
         db.session.commit()
     else:
-        abort(404)
+        abort(404, "Task not found")
     return jsonify({'result': True})
 
 
@@ -77,4 +79,4 @@ def not_found(error):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
