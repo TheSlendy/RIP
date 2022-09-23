@@ -16,21 +16,20 @@ class Task(db.Model):
     description = db.Column(db.String(64), index=True)
     status = db.Column(db.Boolean(), index=True)
 
-    def __repr__(self):
-        return '<Title: {}, Id: {}, Description: {}, Status: {}>'.format(self.title, self.id, self.description,
-                                                                         self.status)
+    def as_dict(self):
+        return {"title": self.title, "id": self.id, "description": self.description, "status": self.status}
 
 
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
-    tasks = str(Task.query.all())
+    tasks = [task.as_dict() for task in Task.query.all()]
     return jsonify(tasks)
 
 
 @app.route('/api/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
-    task = str(Task.query.filter_by(id=task_id).first_or_404())
-    return jsonify(task)
+    task = Task.query.filter_by(id=task_id).first_or_404()
+    return jsonify(task.as_dict())
 
 
 @app.route('/api/tasks', methods=['POST'])
@@ -45,7 +44,7 @@ def create_task():  # JSON file example: {"title": "Name", "description": "Somet
     task = Task(title=title, description=description, status=status)
     db.session.add(task)
     db.session.commit()
-    return jsonify(str(task))
+    return jsonify(task.as_dict())
 
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
@@ -59,7 +58,7 @@ def update_task(task_id):
     task.title = title
     task.description = description
     task.status = status
-    return jsonify(str(task))
+    return jsonify(task.as_dict())
 
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
