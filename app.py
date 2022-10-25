@@ -2,9 +2,12 @@ from flask import Flask, jsonify, make_response, request, abort
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
+cors = CORS(app)
 app.config.from_object(Config)
+app.config['CORS_HEADERS'] = 'Content-Type'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -12,9 +15,9 @@ migrate = Migrate(app, db)
 class Task(db.Model):
     __tablename__ = 'task'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(64), index=True, unique=True)
+    title = db.Column(db.String(64), index=True)
     description = db.Column(db.String(64), index=True)
-    status = db.Column(db.Boolean(), index=True)
+    status = db.Column(db.String(64), index=True)
 
     def as_dict(self):
         return {"title": self.title, "id": self.id, "description": self.description, "status": self.status}
@@ -33,14 +36,12 @@ def get_task(task_id):
 
 
 @app.route('/api/tasks', methods=['POST'])
-def create_task():  # JSON file example: {"title": "Name", "description": "Something", "status": false}
+def create_task():
     if not request.json or not 'title' in request.json:
         abort(400, "Missing title")
     title = str(request.json['title'])
-    if Task.query.filter_by(title=title):
-        abort(400, "Task with this title has already exist")
-    description = str(request.json['description'] or None)
-    status = bool(request.json['status'] or False)
+    description = str(request.json['description']) or None
+    status = str(request.json['status']) or "Not Done"
     task = Task(title=title, description=description, status=status)
     db.session.add(task)
     db.session.commit()
@@ -58,6 +59,7 @@ def update_task(task_id):
     task.title = title
     task.description = description
     task.status = status
+    db.session.commit()
     return jsonify(task.as_dict())
 
 
