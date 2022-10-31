@@ -58,13 +58,12 @@ function App() {
         getTasks();
     }, []);
     const updateTask = (event) => {
-        console.log(event)
         const requestOptions = {
-                method: 'UPDATE',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({"title": title.trim(), "status": status, "description": description.trim()})
+                body: JSON.stringify({"title": event.title.trim(), "status": event.status, "description": event.description.trim()})
             };
-            fetch("http://localhost:5000/api/tasks/1", requestOptions)
+            fetch("http://localhost:5000/api/tasks/"+event.id, requestOptions)
     }
     const [status, setStatus] = React.useState('');
     const [title, setTitle] = React.useState('');
@@ -84,7 +83,6 @@ function App() {
     const handleChangeStatus = (event: SelectChangeEvent) => {
         setStatus(event.target.value);
     };
-// TODO Добавить методы UPDATE
     const OnButtonClick = (event) => {
         if(title.trim() !== ''){
             for(let i = 0; i < list.length; i++){
@@ -105,6 +103,7 @@ function App() {
             setError(true);
             setHelper('Title must be filled');
         }
+        getTasks();
     };
 
     return (
@@ -153,7 +152,7 @@ function App() {
         rowsPerPageOptions={[5]}
         autoHeight
         experimentalFeatures={{ newEditingApi: true }}
-        onCellEditStop={updateTask}
+        processRowUpdate={updateTask}
       />
     </div>
     );

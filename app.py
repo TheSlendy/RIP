@@ -49,6 +49,7 @@ def create_task():
 
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
+@cross_origin(methods=['OPTIONS', 'PUT'])
 def update_task(task_id):
     if not request.json or not 'title' in request.json:
         abort(400, "Missing title")
